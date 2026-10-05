@@ -1,4 +1,4 @@
-# podman_deploy
+# quadlet-deploy
 
 Shell scripts + a Makefile fragment for deploying Podman Quadlet units to a server over SSH.
 Projects pull this repo in automatically via `make`; it is not deployed itself.
@@ -6,12 +6,14 @@ Projects pull this repo in automatically via `make`; it is not deployed itself.
 ## Layout
 
 ```
-podman_deploy/
-├── podman.mk         # Makefile fragment projects include
+quadlet-deploy/
+├── quadlet-deploy.mk # Makefile fragment projects include
 └── scripts/
     ├── lib.sh        # shared helpers (set -eu, logging, arg checks)
     ├── install.sh    # install podman + rsync, enable linger
-    └── deploy.sh     # push quadlets, restart build + container services
+    ├── deploy.sh     # push quadlets, restart build + container services
+    ├── status.sh     # systemctl status of the project's services
+    └── logs.sh       # follow the project's service logs
 ```
 
 Scripts locate their own files relative to themselves:
@@ -35,24 +37,26 @@ myapp/
 Project `Makefile`:
 
 ```make
-PODMAN_DEPLOY_VERSION := v0.1.0
+QUADLET_DEPLOY_VERSION := v0.1.0
 SERVER := me@myhost
 
-include .podman_deploy/podman.mk
+include .quadlet-deploy/quadlet-deploy.mk
 
-.podman_deploy/podman.mk:
-	git -c advice.detachedHead=false clone --depth 1 --branch $(PODMAN_DEPLOY_VERSION) \
-	  https://github.com/<you>/podman_deploy.git .podman_deploy
+.quadlet-deploy/quadlet-deploy.mk:
+	git -c advice.detachedHead=false clone --depth 1 --branch $(QUADLET_DEPLOY_VERSION) \
+	  https://github.com/manavsu/quadlet-deploy.git .quadlet-deploy
 ```
 
-Add `.podman_deploy/` to `.gitignore`.
+Add `.quadlet-deploy/` to `.gitignore`.
 
 Then:
 
 ```sh
-make install                # once per server: podman, rsync, linger
-make deploy                 # first run clones the helper
-make podman-deploy-update   # after bumping PODMAN_DEPLOY_VERSION
+make install               # once per server: podman, rsync, linger
+make deploy                # first run clones the helper
+make status                # are the services running?
+make logs                  # last 100 lines, then follow (Ctrl+C to stop)
+make quadlet-deploy-update # after bumping QUADLET_DEPLOY_VERSION
 ```
 
 Override `QUADLET_DIR` (default `$(CURDIR)/quadlet`) or `SERVER` in the project Makefile

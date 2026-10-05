@@ -7,24 +7,6 @@ project_dir_name() {
   basename "$(dirname "$(cd "$QUADLET_DIR" && pwd)")"
 }
 
-service_names_from_container_files() {
-  for f in "$QUADLET_DIR"/*.container; do
-    [ -e "$f" ] || continue
-    printf '%s.service ' "$(basename "$f" .container)"
-  done
-}
-
-build_service_names_from_build_files() {
-  for f in "$QUADLET_DIR"/*.build; do
-    [ -e "$f" ] || continue
-    printf '%s-build.service ' "$(basename "$f" .build)"
-  done
-}
-
-die_if_no_services() {
-  [ -n "$1" ] || die "no .container files in $QUADLET_DIR"
-}
-
 copy_quadlets_to_server() {
   dest=.config/containers/systemd/$(project_dir_name)
   log "Copying $QUADLET_DIR to $SERVER:~/$dest"
