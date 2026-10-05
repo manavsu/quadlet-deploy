@@ -38,7 +38,7 @@ myapp/
 Project `Makefile`:
 
 ```make
-QUADLET_DEPLOY_VERSION := v0.1.1
+QUADLET_DEPLOY_VERSION := v0.1.2
 QUADLET_DEPLOY := .quadlet-deploy/$(QUADLET_DEPLOY_VERSION)
 SERVER := me@myhost
 
