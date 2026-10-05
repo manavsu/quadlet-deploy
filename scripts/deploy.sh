@@ -14,6 +14,13 @@ service_names_from_container_files() {
   done
 }
 
+build_service_names_from_build_files() {
+  for f in "$QUADLET_DIR"/*.build; do
+    [ -e "$f" ] || continue
+    printf '%s-build.service ' "$(basename "$f" .build)"
+  done
+}
+
 die_if_no_services() {
   [ -n "$1" ] || die "no .container files in $QUADLET_DIR"
 }
@@ -32,5 +39,6 @@ restart_services() {
 read_quadlet_dir_and_server "$@"
 services=$(service_names_from_container_files)
 die_if_no_services "$services"
+build_services=$(build_service_names_from_build_files)
 copy_quadlets_to_server
-restart_services "$services"
+restart_services "$build_services$services"

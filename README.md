@@ -11,9 +11,7 @@ podman_deploy/
 └── scripts/
     ├── lib.sh        # shared helpers (set -eu, logging, arg checks)
     ├── install.sh    # install podman + rsync, enable linger
-    ├── deploy.sh     # push quadlets, daemon-reload, restart
-    ├── status.sh
-    └── logs.sh
+    └── deploy.sh     # push quadlets, restart build + container services
 ```
 
 Scripts locate their own files relative to themselves:
@@ -43,7 +41,7 @@ SERVER := me@myhost
 include .podman_deploy/podman.mk
 
 .podman_deploy/podman.mk:
-	git clone --depth 1 --branch $(PODMAN_DEPLOY_VERSION) \
+	git -c advice.detachedHead=false clone --depth 1 --branch $(PODMAN_DEPLOY_VERSION) \
 	  https://github.com/<you>/podman_deploy.git .podman_deploy
 ```
 
@@ -52,9 +50,8 @@ Add `.podman_deploy/` to `.gitignore`.
 Then:
 
 ```sh
+make install                # once per server: podman, rsync, linger
 make deploy                 # first run clones the helper
-make status
-make logs
 make podman-deploy-update   # after bumping PODMAN_DEPLOY_VERSION
 ```
 
@@ -72,5 +69,7 @@ git tag v0.1.0 && git push --tags
 Debian 13+, rootless. You connect as your normal user (needs sudo for `make install`).
 
 - `install.sh`: installs podman + rsync and enables linger so services survive logout.
+  It skips anything already set up, so it only needs sudo on a fresh server.
 - `deploy.sh`: copies `quadlet/` to `~/.config/containers/systemd/<project>/`, then
-  `systemctl --user daemon-reload` and restarts one service per `.container` file.
+  `systemctl --user daemon-reload` and restarts `<name>-build.service` for each `.build`
+  file and `<name>.service` for each `.container` file.
