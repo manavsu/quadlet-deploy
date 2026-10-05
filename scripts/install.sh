@@ -25,6 +25,15 @@ enable_linger() {
   ssh -t "$SERVER" 'sudo loginctl enable-linger "$USER"'
 }
 
+auto_update_timer_is_enabled() {
+  ssh "$SERVER" 'systemctl --user is-enabled --quiet podman-auto-update.timer'
+}
+
+enable_auto_update_timer() {
+  log "Enabling podman-auto-update.timer on $SERVER"
+  ssh "$SERVER" 'systemctl --user enable --now podman-auto-update.timer'
+}
+
 read_server "$@"
 if podman_and_rsync_are_installed; then
   log "podman and rsync already installed on $SERVER"
@@ -35,4 +44,9 @@ if linger_is_enabled; then
   log "linger already enabled on $SERVER"
 else
   enable_linger
+fi
+if auto_update_timer_is_enabled; then
+  log "podman-auto-update.timer already enabled on $SERVER"
+else
+  enable_auto_update_timer
 fi

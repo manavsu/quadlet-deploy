@@ -52,7 +52,7 @@ Add `.quadlet-deploy/` to `.gitignore`.
 Then:
 
 ```sh
-make install               # once per server: podman, rsync, linger
+make install               # once per server: podman, rsync, linger, auto-update timer
 make deploy                # first run clones the helper
 make status                # are the services running?
 make logs                  # last 100 lines, then follow (Ctrl+C to stop)
@@ -72,8 +72,23 @@ git tag v0.1.0 && git push --tags
 
 Debian 13+, rootless. You connect as your normal user (needs sudo for `make install`).
 
-- `install.sh`: installs podman + rsync and enables linger so services survive logout.
-  It skips anything already set up, so it only needs sudo on a fresh server.
+- `install.sh`: installs podman + rsync, enables linger so services survive logout, and
+  enables `podman-auto-update.timer`. It skips anything already set up, so it only needs
+  sudo on a fresh server.
 - `deploy.sh`: copies `quadlet/` to `~/.config/containers/systemd/<project>/`, then
   `systemctl --user daemon-reload` and restarts `<name>-build.service` for each `.build`
   file and `<name>.service` for each `.container` file.
+
+## Auto-update
+
+`make install` enables `podman-auto-update.timer` (daily). To have a container follow
+its registry image, add to its `.container` file:
+
+```ini
+[Container]
+Image=docker.io/library/nginx:latest
+AutoUpdate=registry
+```
+
+The image name must be fully qualified. Images built from `.build` files are only
+rebuilt on `make deploy`.
