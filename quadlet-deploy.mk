@@ -3,7 +3,7 @@ QUADLET_DEPLOY_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 QUADLET_DIR ?= $(CURDIR)/quadlet
 SERVER      ?= $(error SERVER is not set, e.g. make deploy SERVER=me@host)
 
-.PHONY: install deploy status logs quadlet-deploy-update
+.PHONY: install deploy status logs quadlet-deploy-clean
 
 install:
 	$(QUADLET_DEPLOY_DIR)scripts/install.sh "$(SERVER)"
@@ -17,5 +17,5 @@ status:
 logs:
 	$(QUADLET_DEPLOY_DIR)scripts/logs.sh "$(QUADLET_DIR)" "$(SERVER)"
 
-quadlet-deploy-update:
-	rm -rf $(QUADLET_DEPLOY_DIR)
+quadlet-deploy-clean:
+	$(QUADLET_DEPLOY_DIR)scripts/clean.sh

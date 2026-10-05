@@ -13,7 +13,8 @@ quadlet-deploy/
     ├── install.sh    # install podman + rsync, enable linger
     ├── deploy.sh     # push quadlets, restart build + container services
     ├── status.sh     # systemctl status of the project's services
-    └── logs.sh       # follow the project's service logs
+    ├── logs.sh       # follow the project's service logs
+    └── clean.sh      # remove other cloned helper versions
 ```
 
 Scripts locate their own files relative to themselves:
@@ -37,17 +38,19 @@ myapp/
 Project `Makefile`:
 
 ```make
-QUADLET_DEPLOY_VERSION := v0.1.0
+QUADLET_DEPLOY_VERSION := v0.1.1
+QUADLET_DEPLOY := .quadlet-deploy/$(QUADLET_DEPLOY_VERSION)
 SERVER := me@myhost
 
-include .quadlet-deploy/quadlet-deploy.mk
+include $(QUADLET_DEPLOY)/quadlet-deploy.mk
 
-.quadlet-deploy/quadlet-deploy.mk:
+$(QUADLET_DEPLOY)/quadlet-deploy.mk:
 	git -c advice.detachedHead=false clone --depth 1 --branch $(QUADLET_DEPLOY_VERSION) \
-	  https://github.com/manavsu/quadlet-deploy.git .quadlet-deploy
+	  https://github.com/manavsu/quadlet-deploy.git $(QUADLET_DEPLOY)
 ```
 
-Add `.quadlet-deploy/` to `.gitignore`.
+Add `.quadlet-deploy/` to `.gitignore`. Each version is cloned into its own folder, so
+bumping `QUADLET_DEPLOY_VERSION` is enough to switch; the next `make` clones it.
 
 Then:
 
@@ -56,7 +59,7 @@ make install               # once per server: podman, rsync, linger, auto-update
 make deploy                # first run clones the helper
 make status                # are the services running?
 make logs                  # last 100 lines, then follow (Ctrl+C to stop)
-make quadlet-deploy-update # after bumping QUADLET_DEPLOY_VERSION
+make quadlet-deploy-clean  # remove helper versions other than the current one
 ```
 
 Override `QUADLET_DIR` (default `$(CURDIR)/quadlet`) or `SERVER` in the project Makefile
